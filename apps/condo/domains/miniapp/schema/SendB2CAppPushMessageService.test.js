@@ -68,13 +68,27 @@ describe('SendB2CAppPushMessageService', () => {
             expect(message.id).toMatch(UUID_RE)
         })
 
-        it('Admin can with debug app id', async () => {
+        it('Admin can send with debug app id', async () => {
             const [message] = await sendB2CAppPushMessageByTestClient(admin, {
                 ...appAttrs,
                 app: { id: DEBUG_APP_ID },
             })
 
             expect(message.id).toMatch(UUID_RE)
+        })
+
+        it('User can not send with debug app id', async () => {
+            const residentClient1 = await makeClientWithResidentUser()
+            const [residentData] = await createTestResident(admin, residentClient1.user, residentClient.property)
+
+            await expectToThrowAccessDeniedErrorToResult(async () => {
+                await sendB2CAppPushMessageByTestClient(residentClient1, {
+                    type: B2C_APP_MESSAGE_PUSH_TYPE,
+                    user: { id: residentClient1.user.id },
+                    resident: { id: residentData.id },
+                    app: { id: DEBUG_APP_ID },
+                })
+            })
         })
 
         it('Support can SendB2CAppPushMessageService', async () => {
